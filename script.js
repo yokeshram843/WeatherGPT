@@ -46,7 +46,6 @@ const el = {
     snapWind: document.querySelector("#snapWind"),
     snapRain: document.querySelector("#snapRain"),
 
-    forecastToggle: document.querySelector("#forecastToggle"),
     forecastStrip: document.querySelector("#forecastStrip"),
 
     chatLog: document.querySelector("#chatLog"),
@@ -68,7 +67,6 @@ async function searchWeather() {
 
     setLocating(true);
     el.forecastStrip.hidden = true;
-    el.forecastToggle.setAttribute("aria-expanded", "false");
     el.placePicker.hidden = true;
     el.placePicker.innerHTML = "";
 
@@ -258,13 +256,8 @@ function renderForecastStrip() {
             '<div class="fd-rain">' + d.rainProbability + '% rain</div>';
         el.forecastStrip.appendChild(card);
     });
+    el.forecastStrip.hidden = false;
 }
-
-el.forecastToggle.addEventListener("click", function () {
-    const expanded = el.forecastToggle.getAttribute("aria-expanded") === "true";
-    el.forecastToggle.setAttribute("aria-expanded", String(!expanded));
-    el.forecastStrip.hidden = expanded;
-});
 
 /* ---------------- Weather code helpers ---------------- */
 
