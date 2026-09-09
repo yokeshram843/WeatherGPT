@@ -37,6 +37,7 @@ const el = {
     cityPill: document.querySelector("#pillCity"),
 
     snapshotData: document.querySelector("#snapshotData"),
+    placePicker: document.querySelector("#placePicker"),
     snapIcon: document.querySelector("#snapIcon"),
     snapTemp: document.querySelector("#snapTemp"),
     snapCondition: document.querySelector("#snapCondition"),
@@ -67,6 +68,9 @@ async function searchWeather() {
 
     setLocating(true);
     el.forecastStrip.hidden = true;
+    el.forecastToggle.setAttribute("aria-expanded", "false");
+    el.placePicker.hidden = true;
+    el.placePicker.innerHTML = "";
 
     try {
         const candidates = await geocodePlace(city);
@@ -161,12 +165,12 @@ async function loadWeatherForPlace(place) {
 }
 
 function showPlacePicker(query, candidates) {
-    const wrap = document.createElement("div");
-    wrap.className = "msg msg-bot msg-picker";
+    el.placePicker.innerHTML = "";
 
     const label = document.createElement("p");
-    label.textContent = "Found a few matches for \"" + query + "\" — which one?";
-    wrap.appendChild(label);
+    label.className = "picker-label";
+    label.textContent = "Multiple matches for \"" + query + "\" — pick one:";
+    el.placePicker.appendChild(label);
 
     const list = document.createElement("div");
     list.className = "picker-list";
@@ -184,6 +188,8 @@ function showPlacePicker(query, candidates) {
             setLocating(true);
             try {
                 await loadWeatherForPlace(place);
+                el.placePicker.hidden = true;
+                el.placePicker.innerHTML = "";
             } catch (err) {
                 console.error("Weather error:", err);
                 addBotMessage("Something went wrong fetching weather for " + place.name + ". Please try again.");
@@ -195,9 +201,8 @@ function showPlacePicker(query, candidates) {
         list.appendChild(btn);
     });
 
-    wrap.appendChild(list);
-    el.chatLog.appendChild(wrap);
-    el.chatLog.scrollTop = el.chatLog.scrollHeight;
+    el.placePicker.appendChild(list);
+    el.placePicker.hidden = false;
 }
 
 function setLocating(isLoading) {
