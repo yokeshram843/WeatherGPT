@@ -285,6 +285,52 @@ body{
     font-style: italic;
 }
 
+.msg-picker{
+    max-width: 92%;
+}
+
+.picker-list{
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.picker-option{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--sans);
+}
+
+.picker-option:hover{
+    border-color: var(--blue);
+    background: var(--blue-pale);
+}
+
+.picker-option:disabled{
+    opacity: .5;
+    cursor: default;
+}
+
+.picker-name{
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.picker-region{
+    font-size: 11.5px;
+    color: var(--text-soft);
+}
+
 .chat-input-row{
     display: flex;
     gap: 8px;
