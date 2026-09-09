@@ -50,8 +50,10 @@ const el = {
 
     windySection: document.querySelector("#windySection"),
     windyFrame: document.querySelector("#windyFrame"),
+    windyFrameWrap: document.querySelector("#windyFrameWrap"),
+    windyFullscreen: document.querySelector("#windyFullscreen"),
     emptyState: document.querySelector("#emptyState"),
-    sidebarHint: document.querySelector("#sidebarHint"),
+    chatSuggestions: document.querySelector("#chatSuggestions"),
 
     chatLog: document.querySelector("#chatLog"),
     chatForm: document.querySelector("#chatForm"),
@@ -107,6 +109,25 @@ document.querySelectorAll(".example-chip").forEach(function (chip) {
         el.cityInput.value = chip.dataset.city;
         searchWeather();
     });
+});
+
+el.chatSuggestions.querySelectorAll(".suggestion-chip").forEach(function (chip) {
+    chip.addEventListener("click", function () {
+        el.chatInput.value = chip.dataset.question;
+        askWeatherGPT();
+    });
+});
+
+el.windyFullscreen.addEventListener("click", function () {
+    const el_ = el.windyFrameWrap;
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else if (el_.requestFullscreen) {
+        el_.requestFullscreen();
+    } else if (el_.webkitRequestFullscreen) {
+        // Safari (desktop + iOS Safari 16.4+)
+        el_.webkitRequestFullscreen();
+    }
 });
 
 async function searchWeather() {
@@ -278,7 +299,6 @@ function updateWindyMap(latitude, longitude) {
     el.windyFrame.src = "https://embed.windy.com/embed2.html?" + params.toString();
     el.windySection.hidden = false;
     el.emptyState.hidden = true;
-    el.sidebarHint.hidden = true;
 }
 
 function showPlacePicker(query, candidates) {
@@ -417,6 +437,7 @@ async function askWeatherGPT() {
     const question = el.chatInput.value.trim();
     if (!question) return;
 
+    el.chatSuggestions.hidden = true;
     addUserMessage(question);
     el.chatInput.value = "";
 
