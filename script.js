@@ -54,8 +54,44 @@ const el = {
     chatLog: document.querySelector("#chatLog"),
     chatForm: document.querySelector("#chatForm"),
     chatInput: document.querySelector("#chatInput"),
-    chatSend: document.querySelector("#chatSend")
+    chatSend: document.querySelector("#chatSend"),
+
+    chatFab: document.querySelector("#chatFab"),
+    chatOverlay: document.querySelector("#chatOverlay"),
+    chatClose: document.querySelector("#chatClose")
 };
+
+/* ---------------- Floating chat open/close ---------------- */
+
+el.chatFab.addEventListener("click", function () {
+    openChat();
+});
+
+el.chatClose.addEventListener("click", function () {
+    closeChat();
+});
+
+el.chatOverlay.addEventListener("click", function (event) {
+    if (event.target === el.chatOverlay) closeChat();
+});
+
+document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && !el.chatOverlay.hidden) closeChat();
+});
+
+function openChat() {
+    el.chatOverlay.hidden = false;
+    el.chatFab.setAttribute("aria-expanded", "true");
+    el.chatFab.classList.add("chat-fab-hidden");
+    el.chatFab.classList.remove("chat-fab-unread");
+    el.chatInput.focus();
+}
+
+function closeChat() {
+    el.chatOverlay.hidden = true;
+    el.chatFab.setAttribute("aria-expanded", "false");
+    el.chatFab.classList.remove("chat-fab-hidden");
+}
 
 /* ---------------- Weather lookup ---------------- */
 
@@ -366,6 +402,7 @@ function addUserMessage(text) {
 
 function addBotMessage(text, opts) {
     const cls = opts && opts.thinking ? "msg-bot msg-thinking" : "msg-bot";
+    if (el.chatOverlay.hidden) el.chatFab.classList.add("chat-fab-unread");
     return appendMessage(text, cls);
 }
 
