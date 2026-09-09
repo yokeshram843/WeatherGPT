@@ -49,17 +49,6 @@
 
             <div class="forecast-strip" id="forecastStrip" hidden></div>
         </section>
-
-        <!-- Fills sidebar space nicely before a search; hides once weather loads -->
-        <section class="sidebar-hint" id="sidebarHint">
-            <p class="sidebar-hint-title">Try asking</p>
-            <ul class="sidebar-hint-list">
-                <li>"Will it rain tomorrow?"</li>
-                <li>"Can I wash my car today?"</li>
-                <li>"How windy is it right now?"</li>
-                <li>"எச்சரிக்கை ஏதேனும் உள்ளதா?"</li>
-            </ul>
-        </section>
     </div>
 
     <div class="app-main">
@@ -77,13 +66,20 @@
 
         <!-- Windy interactive wind/weather map -->
         <section class="windy-section" id="windySection" hidden>
-            <p class="windy-label">Live wind map</p>
-            <div class="windy-frame">
+            <div class="windy-header">
+                <p class="windy-label">Live wind map</p>
+                <button type="button" class="windy-fullscreen" id="windyFullscreen">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/>
+                    </svg>
+                    Fullscreen
+                </button>
+            </div>
+            <div class="windy-frame" id="windyFrameWrap">
                 <iframe
                     id="windyFrame"
                     title="Windy interactive weather map"
-                    loading="lazy"
-                    allowfullscreen>
+                    loading="lazy">
                 </iframe>
             </div>
         </section>
@@ -115,8 +111,14 @@
         </div>
         <div class="chat-log" id="chatLog">
             <div class="msg msg-bot">
-                <p>Hi, I'm WeatherGPT. Search a city above, then ask me anything — "can I wash my car today?", "will it rain tomorrow?", "எச்சரிக்கை ஏதேனும் உள்ளதா?" — in English or Tamil.</p>
+                <p>Hi, I'm WeatherGPT. Search a city above, then ask me anything — in English or Tamil.</p>
             </div>
+        </div>
+
+        <div class="chat-suggestions" id="chatSuggestions">
+            <button type="button" class="suggestion-chip" data-question="Will it rain tomorrow?">Will it rain tomorrow?</button>
+            <button type="button" class="suggestion-chip" data-question="Can I wash my car today?">Can I wash my car today?</button>
+            <button type="button" class="suggestion-chip" data-question="How windy is it right now?">How windy is it right now?</button>
         </div>
 
         <form class="chat-input-row" id="chatForm">
