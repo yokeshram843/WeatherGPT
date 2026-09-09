@@ -20,12 +20,13 @@
 
 body{
     margin: 0;
-    min-height: 100vh;
+    height: 100vh;
     font-family: var(--sans);
     background: var(--page);
     color: var(--text);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 @media (prefers-reduced-motion: no-preference){
@@ -81,6 +82,7 @@ body{
     flex-direction: column;
     gap: 16px;
     min-height: 0;
+    overflow-y: auto;
 }
 
 /* ---------- Snapshot ---------- */
@@ -297,14 +299,36 @@ body{
 /* ---------- Chat ---------- */
 
 .chat{
-    flex: 1;
+    flex: 1 1 420px;
     display: flex;
     flex-direction: column;
+    height: 420px;
     min-height: 420px;
     background: var(--card);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     overflow: hidden;
+}
+
+.chat-header{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 18px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--blue-deep);
+    background: var(--blue-pale);
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+}
+
+.chat-header-dot{
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #34C759;
+    box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.2);
 }
 
 .chat-log{
@@ -350,6 +374,7 @@ body{
     gap: 8px;
     padding: 14px;
     border-top: 1px solid var(--line);
+    flex-shrink: 0;
 }
 
 .chat-input-row input{
