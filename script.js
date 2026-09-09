@@ -50,6 +50,7 @@ const el = {
 
     windySection: document.querySelector("#windySection"),
     windyFrame: document.querySelector("#windyFrame"),
+    emptyState: document.querySelector("#emptyState"),
 
     chatLog: document.querySelector("#chatLog"),
     chatForm: document.querySelector("#chatForm"),
@@ -100,6 +101,13 @@ el.locationForm.addEventListener("submit", function (event) {
     searchWeather();
 });
 
+document.querySelectorAll(".example-chip").forEach(function (chip) {
+    chip.addEventListener("click", function () {
+        el.cityInput.value = chip.dataset.city;
+        searchWeather();
+    });
+});
+
 async function searchWeather() {
     const city = el.cityInput.value.trim();
     if (!city) return;
@@ -147,12 +155,12 @@ async function geocodePlace(query) {
     const res = await fetch(
         "https://nominatim.openstreetmap.org/search?q=" +
         encodeURIComponent(query) +
-        "&format=json&addressdetails=1&limit=6"
+        "&format=json&addressdetails=1&limit=8"
     );
     if (!res.ok) throw new Error("Location lookup failed");
     const results = await res.json();
 
-    return results.map(function (r) {
+    const mapped = results.map(function (r) {
         const addr = r.address || {};
         // Prefer the most specific name available (village > town > city),
         // falling back to whatever Nominatim used as the primary label.
@@ -171,6 +179,46 @@ async function geocodePlace(query) {
             longitude: parseFloat(r.lon)
         };
     });
+
+    return dedupePlaces(mapped);
+}
+
+/* Nominatim often returns the same place several times (a village node,
+   its boundary relation, a nearby post office, etc). Offering the user
+   two identical-looking options is worse than useless, so collapse
+   entries that share a name+region or that sit within ~15km of each
+   other — at that distance the weather is the same anyway. */
+
+function dedupePlaces(places) {
+    const kept = [];
+
+    places.forEach(function (place) {
+        const duplicate = kept.some(function (existing) {
+            const sameText =
+                existing.name.toLowerCase() === place.name.toLowerCase() &&
+                existing.region.toLowerCase() === place.region.toLowerCase();
+
+            return sameText || distanceKm(existing, place) < 15;
+        });
+
+        if (!duplicate) kept.push(place);
+    });
+
+    return kept;
+}
+
+function distanceKm(a, b) {
+    const R = 6371;
+    const toRad = function (deg) { return deg * Math.PI / 180; };
+    const dLat = toRad(b.latitude - a.latitude);
+    const dLon = toRad(b.longitude - a.longitude);
+    const lat1 = toRad(a.latitude);
+    const lat2 = toRad(b.latitude);
+
+    const h = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+
+    return 2 * R * Math.asin(Math.sqrt(h));
 }
 
 async function loadWeatherForPlace(place) {
@@ -228,6 +276,7 @@ function updateWindyMap(latitude, longitude) {
 
     el.windyFrame.src = "https://embed.windy.com/embed2.html?" + params.toString();
     el.windySection.hidden = false;
+    el.emptyState.hidden = true;
 }
 
 function showPlacePicker(query, candidates) {
@@ -241,7 +290,7 @@ function showPlacePicker(query, candidates) {
     const list = document.createElement("div");
     list.className = "picker-list";
 
-    candidates.forEach(function (place) {
+    candidates.slice(0, 4).forEach(function (place) {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "picker-option";
