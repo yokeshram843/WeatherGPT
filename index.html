@@ -1,216 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WeatherGPT</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WeatherGPT — Ask the sky anything</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<nav>
-    <div class="logo">WeatherGPT</div>
 
-    <ul>
-        <li><a href="#">Home</a></li>
-        <li><a href="#">About</a></li>
-        <li><a href="#">Services</a></li>
-        <li><a href="#">Contact</a></li>
-    </ul>
-</nav>
+<header class="topbar">
+    <div class="brand">WeatherGPT</div>
+    <div class="city-pill" id="cityPill">
+        <span id="pillCity">No location set</span>
+    </div>
+</header>
 
-<section class="hero">
-    <h1>WeatherGPT</h1>
+<main class="app">
 
-<p>
-    Your intelligent conversational assistant for
-    weather forecasts, alerts and climate information.
-</p>
-    <button onclick="document.querySelector('.weather-search input').focus()">Get Started</button>
-    <div class="weather-search">
-    <input type="text" placeholder="Enter city name...">
-    <button onclick="searchWeather()">Search Weather</button>
-</div>
-<div class="weather-card">
-    <h2 id="cityName">--</h2>
-<div class="temperature" id="temperature">--°C</div>
-<p class="condition" id="condition">Search a city</p>
+    <!-- Compact weather snapshot -->
+    <section class="snapshot" id="snapshot">
+        <form class="location-form" id="locationForm">
+            <input type="text" id="cityInput" placeholder="Enter a city to begin…" autocomplete="off">
+            <button type="submit" id="locateBtn">Get weather</button>
+        </form>
 
-
-    <div class="weather-details">
-        <div>
-            <span>Humidity</span>
-          <strong id="humidity">--%</strong>
-
+        <div class="snapshot-data" id="snapshotData" hidden>
+            <div class="snapshot-main">
+                <div class="snapshot-icon" id="snapIcon">—</div>
+                <div>
+                    <div class="snapshot-temp" id="snapTemp">--°</div>
+                    <div class="snapshot-condition" id="snapCondition">—</div>
+                </div>
+            </div>
+            <dl class="snapshot-stats">
+                <div><dt>Feels like</dt><dd id="snapFeels">--°</dd></div>
+                <div><dt>Humidity</dt><dd id="snapHumidity">--%</dd></div>
+                <div><dt>Wind</dt><dd id="snapWind">-- km/h</dd></div>
+                <div><dt>Rain today</dt><dd id="snapRain">--%</dd></div>
+            </dl>
+            <button class="forecast-toggle" id="forecastToggle" type="button" aria-expanded="false">
+                7-day forecast <span class="chevron">▾</span>
+            </button>
         </div>
 
-        <div>
-            <span>Wind Speed</span>
-            <strong id="windSpeed">-- km/h</strong>
+        <div class="forecast-strip" id="forecastStrip" hidden></div>
+    </section>
 
-        </div>
-    </div>
-    <p class="feels-like">Feels Like: <span id="feelsLike">--°C</span></p>
-    <div class="extra-details">
-    <div>
-        <span>Visibility</span>
-       <strong id="visibility">-- km</strong>
-
-    </div>
-
-    <div>
-        <span>Pressure</span>
-       <strong id="pressure">-- hPa</strong>
-
-    </div>
-</div>
-</div>
-<div class="forecast-section">
-    <h2>📅 7-Day Forecast</h2>
-
-    <div class="forecast-container">
-
-        <div class="forecast-card">
-    <h3 id="day1">Today</h3>
-  <div class="forecast-icon" id="icon1">--</div>
-
-    <strong id="temp1">--°C</strong>
-<p id="condition1">--</p>
-
-    <p id="rain1">Rain: --%</p>
-</div>
-
-       <div class="forecast-card">
-    <h3 id="day2">Tomorrow</h3>
-   <div class="forecast-icon" id="icon2">--</div>
-
-    <strong id="temp2">--°C</strong>
-<p id="condition2">--</p>
-    <p id="rain2">Rain: --%</p>
-</div>
-
-       <div class="forecast-card">
-    <h3 id="day3">Day 3</h3>
-    <div class="forecast-icon" id="icon3">--</div>
-
-   <strong id="temp3">--°C</strong>
-<p id="condition3">--</p>
-
-    <p id="rain3">Rain: --%</p>
-</div>
-
-       <div class="forecast-card">
-    <h3 id="day4">Day 4</h3>
-    <div class="forecast-icon" id="icon4">--</div>
-
-    <strong id="temp4">--°C</strong>
-<p id="condition4">--</p>
-    <p id="rain4">Rain: --%</p>
-</div>
-
-       <div class="forecast-card">
-    <h3 id="day5">Day 5</h3>
-    <div class="forecast-icon" id="icon5">--</div>
-
-   <strong id="temp5">--°C</strong>
-<p id="condition5">--</p>
-    <p id="rain5">Rain: --%</p>
-</div>
-
-      <div class="forecast-card">
-    <h3 id="day6">Day 6</h3>
-    <div class="forecast-icon" id="icon6">--</div>
-
-    <strong id="temp6">--°C</strong>
-<p id="condition6">--</p>
-    <p id="rain6">Rain: --%</p>
-</div>
-       <div class="forecast-card">
-    <h3 id="day7">Day 7</h3>
-    <div class="forecast-icon" id="icon7">--</div>
-
-   <strong id="temp7">--°C</strong>
-<p id="condition7">--</p>
-    <p id="rain7">Rain: --%</p>
-</div>
-
-    </div>
-</div>
-<div class="risk-section">
-    <h2>🧠 Smart Weather Risk Analysis</h2>
-
-    <div class="risk-container">
-
-        <div class="risk-card">
-            <span>🔥 Heat Risk</span>
-            <strong id="heatRisk">--</strong>
+    <!-- Chat: the primary interface -->
+    <section class="chat" aria-label="Chat with WeatherGPT">
+        <div class="chat-log" id="chatLog">
+            <div class="msg msg-bot">
+                <p>Hi, I'm WeatherGPT. Search a city above, then ask me anything — "will it rain tomorrow?", "do I need a jacket?", "எச்சரிக்கை ஏதேனும் உள்ளதா?" — in English or Tamil.</p>
+            </div>
         </div>
 
-        <div class="risk-card">
-            <span>🌧️ Rain Risk</span>
-            <strong id="rainRisk">--</strong>
-        </div>
+        <form class="chat-input-row" id="chatForm">
+            <input type="text" id="chatInput" placeholder="Ask about the weather…" autocomplete="off">
+            <button type="submit" id="chatSend" aria-label="Send">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 12h16M13 5l7 7-7 7"/>
+                </svg>
+            </button>
+        </form>
+    </section>
 
-        <div class="risk-card">
-            <span>⛈️ Storm Risk</span>
-            <strong id="stormRisk">--</strong>
-        </div>
+</main>
 
-        <div class="risk-card">
-            <span>🚗 Travel Risk</span>
-            <strong id="travelRisk">--</strong>
-        </div>
-
-    </div>
-
-    <div class="recommendation-card">
-        <h3>💡 Safety Recommendation</h3>
-        <p id="safetyRecommendation">
-            Search for a city to get weather-based safety recommendations.
-        </p>
-    </div>
-</div>
-
-
-<div class="alert-section">
-    <h2>🚨 Weather Alerts</h2>
-
-    <div class="alert-card">
-        <div class="alert-icon">⚠️</div>
-
-        <div class="alert-content">
-            <h3 id="alertTitle">No Active Alerts</h3>
-            <span id="alertLevel">Normal</span>
-
-            <p id="alertMessage">
-    There are currently no severe weather alerts for the selected city.
-</p>
-
-<p id="rainAlert" class="rain-alert">Rain Probability: --%</p>
-        </div>
-    </div>
-</div>
-
-<div class="chat-section">
-    <h2>🤖 Ask WeatherGPT</h2>
-
-    <p>
-        Ask questions about weather, forecasts, alerts and climate.
-    </p>
-
-    <div class="chat-box">
-        <input type="text" id="chatInput" placeholder="Ask WeatherGPT anything...">
-        <button onclick="askWeatherGPT()">Ask</button>
-    </div>
-   <div class="chat-response">
-    <strong>WeatherGPT:</strong>
-    <p id="chatResponse">Ask me anything about weather, forecasts, alerts or climate.</p>
-</div>
-</div>
-</section>
 <footer class="footer">
-    <p>© 2026 WeatherGPT</p>
-    <p>AI-powered weather forecasting and alerts</p>
+    <p>WeatherGPT · live data from Open-Meteo · SIH prototype</p>
 </footer>
+
 <script src="script.js"></script>
 </body>
 </html>
