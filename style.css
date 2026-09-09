@@ -253,26 +253,15 @@ body{
     margin: 0;
 }
 
-.forecast-toggle{
-    width: 100%;
-    margin-top: 14px;
-    background: none;
-    border: none;
-    color: #fff;
+.forecast-label{
+    margin: 14px 0 0;
+    padding-top: 0;
+    text-align: center;
+    color: rgba(255,255,255,0.85);
     font-family: var(--sans);
     font-size: 12.5px;
     font-weight: 700;
-    padding: 6px 0 0;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    opacity: 0.9;
 }
-
-.chevron{ transition: transform .15s ease; display: inline-block; }
-.forecast-toggle[aria-expanded="true"] .chevron{ transform: rotate(180deg); }
 
 .forecast-strip{
     margin-top: 14px;
