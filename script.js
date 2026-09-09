@@ -48,6 +48,9 @@ const el = {
 
     forecastStrip: document.querySelector("#forecastStrip"),
 
+    windySection: document.querySelector("#windySection"),
+    windyFrame: document.querySelector("#windyFrame"),
+
     chatLog: document.querySelector("#chatLog"),
     chatForm: document.querySelector("#chatForm"),
     chatInput: document.querySelector("#chatInput"),
@@ -155,11 +158,40 @@ async function loadWeatherForPlace(place) {
     renderForecastStrip();
     el.cityPill.textContent = weatherContext.city;
     el.snapshotData.hidden = false;
+    updateWindyMap(place.latitude, place.longitude);
 
     addBotMessage(
         "Got it — " + weatherContext.city + " is " + Math.round(weatherContext.temperature) +
         "°C and " + weatherContext.condition.toLowerCase() + " right now. Ask me anything about it."
     );
+}
+
+/* ----------------------------------------------------------
+   Windy embed — no API key needed for the basic iframe embed.
+   Centers Windy's interactive wind map on the searched
+   location with a marker, wind overlay by default.
+   ---------------------------------------------------------- */
+
+function updateWindyMap(latitude, longitude) {
+    const params = new URLSearchParams({
+        lat: latitude,
+        lon: longitude,
+        detailLat: latitude,
+        detailLon: longitude,
+        zoom: "9",
+        level: "surface",
+        overlay: "wind",
+        product: "ecmwf",
+        marker: "true",
+        calendar: "now",
+        type: "map",
+        location: "coordinates",
+        metricWind: "km/h",
+        metricTemp: "°C"
+    });
+
+    el.windyFrame.src = "https://embed.windy.com/embed2.html?" + params.toString();
+    el.windySection.hidden = false;
 }
 
 function showPlacePicker(query, candidates) {
