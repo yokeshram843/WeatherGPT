@@ -21,6 +21,7 @@
 body{
     margin: 0;
     height: 100vh;
+    height: 100dvh;
     font-family: var(--sans);
     background: var(--page);
     color: var(--text);
@@ -83,6 +84,7 @@ body{
     gap: 16px;
     min-height: 0;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .app-sidebar{
@@ -106,6 +108,9 @@ body{
     }
     .app-sidebar{
         width: 400px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
         overflow-y: auto;
         padding-right: 4px;
     }
@@ -315,6 +320,39 @@ body{
 .forecast-day .fd-temp{ font-size: 13px; font-weight: 700; }
 .forecast-day .fd-rain{ font-size: 9.5px; color: var(--blue-pale); margin-top: 3px; }
 
+/* ---------- Sidebar hint (empty-state filler) ---------- */
+
+.sidebar-hint{
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px 20px;
+}
+
+.sidebar-hint-title{
+    margin: 0 0 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--blue-deep);
+}
+
+.sidebar-hint-list{
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.sidebar-hint-list li{
+    font-size: 14px;
+    color: var(--text-soft);
+    background: var(--blue-pale);
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+}
+
 /* ---------- Empty state ---------- */
 
 .empty-state{
@@ -402,8 +440,9 @@ body{
 .windy-frame{
     position: relative;
     width: 100%;
-    min-height: 380px;
-    height: 55vh;
+    min-height: 340px;
+    height: 50vh;
+    height: 50dvh;
     border-radius: var(--radius-sm);
     overflow: hidden;
     background: var(--blue-pale);
