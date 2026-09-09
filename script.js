@@ -66,52 +66,138 @@ async function searchWeather() {
     if (!city) return;
 
     setLocating(true);
+    el.forecastStrip.hidden = true;
 
     try {
-        const geo = await fetch(
-            "https://geocoding-api.open-meteo.com/v1/search?name=" +
-            encodeURIComponent(city) + "&count=1&language=en&format=json"
-        );
-        if (!geo.ok) throw new Error("Location lookup failed");
-        const geoData = await geo.json();
+        const candidates = await geocodePlace(city);
 
-        if (!geoData.results || geoData.results.length === 0) {
-            addBotMessage("I couldn't find \"" + city + "\". Try a different spelling or a nearby larger city.");
+        if (candidates.length === 0) {
+            addBotMessage("I couldn't find \"" + city + "\". Try a nearby town, taluk, or district name instead.");
             return;
         }
 
-        const place = geoData.results[0];
-        weatherContext.city = place.name || city;
-        weatherContext.latitude = place.latitude;
-        weatherContext.longitude = place.longitude;
-
-        const weatherRes = await fetch(
-            "https://api.open-meteo.com/v1/forecast?latitude=" + place.latitude +
-            "&longitude=" + place.longitude +
-            "&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,apparent_temperature,visibility,surface_pressure" +
-            "&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max" +
-            "&forecast_days=7&timezone=auto"
-        );
-        if (!weatherRes.ok) throw new Error("Weather lookup failed");
-        const weatherData = await weatherRes.json();
-        if (!weatherData.current || !weatherData.daily) throw new Error("Incomplete weather data");
-
-        applyWeatherData(weatherData);
-        renderSnapshot();
-        renderForecastStrip();
-        el.cityPill.textContent = weatherContext.city;
-        el.snapshotData.hidden = false;
-
-        addBotMessage(
-            "Got it — " + weatherContext.city + " is " + Math.round(weatherContext.temperature) +
-            "°C and " + weatherContext.condition.toLowerCase() + " right now. Ask me anything about it."
-        );
+        if (candidates.length === 1) {
+            await loadWeatherForPlace(candidates[0]);
+        } else {
+            showPlacePicker(city, candidates);
+        }
     } catch (err) {
         console.error("Weather error:", err);
         addBotMessage("Something went wrong fetching weather for \"" + city + "\". Please try again.");
     } finally {
         setLocating(false);
     }
+}
+
+/* ----------------------------------------------------------
+   Geocoding — name to coordinates.
+   ----------------------------------------------------------
+   Uses Nominatim (OpenStreetMap) instead of Open-Meteo's own
+   geocoder. Open-Meteo's geocoder is backed by GeoNames, which
+   has good city coverage but is thin on small villages —
+   especially in India. Nominatim is built from OpenStreetMap
+   contributions and has noticeably denser rural coverage, so
+   a search like "Pushpavanam" is far more likely to resolve.
+   Free, no API key required. Weather data itself still comes
+   from Open-Meteo — only this lookup step changed.
+   ---------------------------------------------------------- */
+
+async function geocodePlace(query) {
+    const res = await fetch(
+        "https://nominatim.openstreetmap.org/search?q=" +
+        encodeURIComponent(query) +
+        "&format=json&addressdetails=1&limit=6"
+    );
+    if (!res.ok) throw new Error("Location lookup failed");
+    const results = await res.json();
+
+    return results.map(function (r) {
+        const addr = r.address || {};
+        // Prefer the most specific name available (village > town > city),
+        // falling back to whatever Nominatim used as the primary label.
+        const name = addr.village || addr.town || addr.city || addr.hamlet ||
+            addr.suburb || r.name || query;
+
+        const region = [addr.state_district, addr.state]
+            .filter(Boolean)
+            .join(", ");
+
+        return {
+            name: name,
+            label: r.display_name,
+            region: region,
+            latitude: parseFloat(r.lat),
+            longitude: parseFloat(r.lon)
+        };
+    });
+}
+
+async function loadWeatherForPlace(place) {
+    weatherContext.city = place.name;
+    weatherContext.latitude = place.latitude;
+    weatherContext.longitude = place.longitude;
+
+    const weatherRes = await fetch(
+        "https://api.open-meteo.com/v1/forecast?latitude=" + place.latitude +
+        "&longitude=" + place.longitude +
+        "&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,apparent_temperature,visibility,surface_pressure" +
+        "&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max" +
+        "&forecast_days=7&timezone=auto"
+    );
+    if (!weatherRes.ok) throw new Error("Weather lookup failed");
+    const weatherData = await weatherRes.json();
+    if (!weatherData.current || !weatherData.daily) throw new Error("Incomplete weather data");
+
+    applyWeatherData(weatherData);
+    renderSnapshot();
+    renderForecastStrip();
+    el.cityPill.textContent = weatherContext.city;
+    el.snapshotData.hidden = false;
+
+    addBotMessage(
+        "Got it — " + weatherContext.city + " is " + Math.round(weatherContext.temperature) +
+        "°C and " + weatherContext.condition.toLowerCase() + " right now. Ask me anything about it."
+    );
+}
+
+function showPlacePicker(query, candidates) {
+    const wrap = document.createElement("div");
+    wrap.className = "msg msg-bot msg-picker";
+
+    const label = document.createElement("p");
+    label.textContent = "Found a few matches for \"" + query + "\" — which one?";
+    wrap.appendChild(label);
+
+    const list = document.createElement("div");
+    list.className = "picker-list";
+
+    candidates.forEach(function (place) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "picker-option";
+        btn.innerHTML =
+            '<span class="picker-name">' + place.name + '</span>' +
+            (place.region ? '<span class="picker-region">' + place.region + '</span>' : '');
+
+        btn.addEventListener("click", async function () {
+            list.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
+            setLocating(true);
+            try {
+                await loadWeatherForPlace(place);
+            } catch (err) {
+                console.error("Weather error:", err);
+                addBotMessage("Something went wrong fetching weather for " + place.name + ". Please try again.");
+            } finally {
+                setLocating(false);
+            }
+        });
+
+        list.appendChild(btn);
+    });
+
+    wrap.appendChild(list);
+    el.chatLog.appendChild(wrap);
+    el.chatLog.scrollTop = el.chatLog.scrollHeight;
 }
 
 function setLocating(isLoading) {
