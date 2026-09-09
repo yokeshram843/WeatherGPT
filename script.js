@@ -51,6 +51,7 @@ const el = {
     windySection: document.querySelector("#windySection"),
     windyFrame: document.querySelector("#windyFrame"),
     emptyState: document.querySelector("#emptyState"),
+    sidebarHint: document.querySelector("#sidebarHint"),
 
     chatLog: document.querySelector("#chatLog"),
     chatForm: document.querySelector("#chatForm"),
@@ -277,6 +278,7 @@ function updateWindyMap(latitude, longitude) {
     el.windyFrame.src = "https://embed.windy.com/embed2.html?" + params.toString();
     el.windySection.hidden = false;
     el.emptyState.hidden = true;
+    el.sidebarHint.hidden = true;
 }
 
 function showPlacePicker(query, candidates) {
