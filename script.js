@@ -265,71 +265,22 @@ function appendMessage(text, className) {
 }
 
 /* ----------------------------------------------------------
-   LLM call — the ONLY function that talks to a model.
+   Answers questions using the fetched weather data.
    ----------------------------------------------------------
-   Swap this out for a real backend endpoint later, e.g.:
+   This is a rule-based responder — no external API, no key,
+   no backend needed. It's the whole point for a prototype:
+   works instantly, offline-safe, nothing to deploy or pay for.
 
-       async function callWeatherGPT(question, context) {
-           const res = await fetch("/api/chat", {
-               method: "POST",
-               headers: { "Content-Type": "application/json" },
-               body: JSON.stringify({ question, context })
-           });
-           const data = await res.json();
-           return data.answer;
-       }
-
-   For now this calls the Anthropic API directly from the
-   browser, which is fine for a demo but exposes the key to
-   anyone who opens devtools — do NOT ship this to real users
-   without moving the key server-side.
+   If you later want real LLM reasoning (freeform questions,
+   better language handling), wire this up to a backend that
+   calls an LLM API — keep the key server-side, never in this
+   file. For now this covers rain, temperature, humidity, wind,
+   forecast, and activity questions ("wash my car", "go for a
+   run", etc.) using a simple rain/wind heuristic.
    ---------------------------------------------------------- */
 
-const ANTHROPIC_API_KEY = "PUT_YOUR_KEY_HERE"; // never commit a real key
-
 async function callWeatherGPT(question, context) {
-    if (!ANTHROPIC_API_KEY || ANTHROPIC_API_KEY === "PUT_YOUR_KEY_HERE") {
-        // No key configured — use the offline rule-based responder instead
-        // of throwing, so the demo still works without setup.
-        return getFallbackAnswer(question, context);
-    }
-
-    const systemPrompt =
-        "You are WeatherGPT, a concise weather assistant embedded in a chat widget. " +
-        "Answer only using the JSON weather data provided — never invent numbers. " +
-        "If asked something the data can't answer, say so briefly. " +
-        "Reply in the same language the user asked in (English or Tamil). " +
-        "Keep answers to 1-3 sentences, conversational, no markdown.";
-
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": ANTHROPIC_API_KEY,
-            "anthropic-version": "2023-06-01",
-            "anthropic-dangerous-direct-browser-access": "true"
-        },
-        body: JSON.stringify({
-            model: "claude-sonnet-4-6",
-            max_tokens: 300,
-            system: systemPrompt,
-            messages: [
-                {
-                    role: "user",
-                    content:
-                        "Weather data:\n" + JSON.stringify(context) +
-                        "\n\nQuestion: " + question
-                }
-            ]
-        })
-    });
-
-    if (!response.ok) throw new Error("LLM API error " + response.status);
-
-    const data = await response.json();
-    const textBlock = data.content.find(function (b) { return b.type === "text"; });
-    if (!textBlock) throw new Error("No text in LLM response");
-    return textBlock.text.trim();
+    return getFallbackAnswer(question, context);
 }
 
 /* ----------------------------------------------------------
@@ -376,6 +327,27 @@ function getFallbackAnswer(question, ctx) {
         return "Here's the week ahead for " + ctx.city + ": " +
             ctx.forecast.map(function (d) { return d.day + " " + Math.round(d.tempMax) + "°"; }).join(", ") + ".";
     }
+
+    // Activity-style questions — rough heuristic based on rain chance & wind,
+    // since there's no LLM reasoning available offline.
+    const outdoorActivity =
+        q.includes("wash") || q.includes("car") || q.includes("run") ||
+        q.includes("jog") || q.includes("walk") || q.includes("laundry") ||
+        q.includes("dry") || q.includes("picnic") || q.includes("outside") ||
+        q.includes("outdoor") || q.includes("bike") || q.includes("cycle");
+
+    if (outdoorActivity) {
+        const rainy = ctx.rainProbabilityToday >= 40;
+        const windy = ctx.windSpeed >= 25;
+        if (rainy) {
+            return "Probably not the best day — " + ctx.rainProbabilityToday + "% chance of rain in " + ctx.city + " today.";
+        }
+        if (windy) {
+            return "Should be dry, but it's fairly windy (" + Math.round(ctx.windSpeed) + " km/h) in " + ctx.city + " today.";
+        }
+        return "Looks like a good window — only " + ctx.rainProbabilityToday + "% chance of rain in " + ctx.city + " today.";
+    }
+
     return "I can tell you about current temperature, rain chances, humidity, wind, or the 7-day forecast for " + ctx.city + ".";
 }
 
